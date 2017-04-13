@@ -21,16 +21,23 @@ export {
     redef ignore_checksums = T;
     global enforcement_mode = F;
 
+    const dfa_alphabet = set("hashed_s7_header");
+
+    type DFA_State: record {
+        state: string &log;
+        symbol: string &log;
+    };
+
     type DFA: record {
-        states: vector of count;
-        alphabet: vector of string;
-        start_state: count;
-        accept_states: vector of count;
-        current_state: count;
+        states: set[DFA_State];
+        start_state: count &log;
+        accept_states: vector of count &log;
+        current_state: count &log;
     };
 
 
-    global channels: table[addr] of DFA &persistent;
+    # Moet nog &persistance toegevoegd worden in de live omgeving
+    global channels: table[addr] of DFA;
 
 }
 
@@ -66,6 +73,8 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
 
     } else{
 
+        local s7_header = c$s7comm;
+
         # Kijk of we in learning mode zitten of enforcement mode
         if(enforcement_mode) {
 
@@ -93,21 +102,27 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
             if (ip !in channels) {
 
                 # Maak een nieuwe channel met bijhorende DFA
-                print "added new channel: " + addr_to_uri(ip);
+                print "[Channels] New channel: " + addr_to_uri(ip);
 
+                # Maak een nieuwe DFA en vul deze in
                 local new_channel_dfa: DFA;
-                # Vul DFA in
+                local hashed_s7_header_fields: string = sha256_hash(s7_header$functypenum);
 
+                add new_channel_dfa$states[[$state = s7_header$msgtype, $symbol = sha256_hash(s7_header$functypenum)]];
+            
+                print "[Channels][" + addr_to_uri(ip) + "] Added nieuwe DFA";
                 # Voeg channel toe
                 channels[ip] = new_channel_dfa;
 
             } else {
                
+                print "[Channels][" + addr_to_uri(ip) + "][DFA] learning....";
+
                  # Get DFA voor deze channel
                 local channel_learning_dfa: DFA = channels[ip];
 
                 # DFA learning logic
-
+                add channel_learning_dfa$states[[$state = s7_header$msgtype, $symbol = sha256_hash(s7_header$functypenum)]];
             } 
 
         }

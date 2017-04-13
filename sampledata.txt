@@ -1,0 +1,24 @@
+history=ShADd,
+uid=CRLfat1KGOqYddckn4, 
+tunnel=<uninitialized>, 
+vlan=<uninitialized>, 
+inner_vlan=<uninitialized>,
+
+# INTERESSANT
+iso_cotp=[ts=1408528804.322421, uid=CRLfat1KGOqYddckn4, id=[orig_h=192.168.1.10, orig_p=4186/tcp, resp_h=192.168.1.40, resp_p=102/tcp], msg=Data], 
+
+s7comm=[ts=1408528804.322421, uid=CRLfat1KGOqYddckn4, id=[orig_h=192.168.1.10, orig_p=4186/tcp, resp_h=192.168.1.40, resp_p=102/tcp], msgtype=S7 ROSCTR ACK_DATA, msgtypenum=3, funcmode=<uninitialized>, funcmodenum=<uninitialized>, functypenum=240, functype=Setup communication, subfunctypenum=<uninitialized>, subfunctype=<uninitialized>, error=0],
+s7data=<uninitialized>,
+# INTERESSANT
+
+dpd=<uninitialized>,
+conn=<uninitialized>, 
+extract_orig=F, 
+extract_resp=F, 
+thresholds=<uninitialized>, 
+dce_rpc=<uninitialized>, 
+dce_rpc_state=<uninitialized>, 
+dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>]
+[id=[orig_h=192.168.1.10, orig_p=4187/tcp, resp_h=192.168.1.40, resp_p=102/tcp], orig=[size=47, state=4, num_pkts=3, num_bytes_ip=154, flow_label=0, l2_addr=90:e6:ba:84:5e:41], resp=[size=22, state=4, num_pkts=2, num_bytes_ip=106, flow_label=0, l2_addr=00:1b:1b:23:eb:3b], start_time=1408528804.350055, duration=0.005521, service={
+
+}
