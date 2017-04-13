@@ -3,6 +3,8 @@
 # δ is the transition function where δ: Q × ∑ → Q
 # q0 is the initial state from where any input is processed (q0 ∈ Q).
 # F is a set of final state/states of Q (F ⊆ Q).
+#
+# Basic DFA implementatie gebasseerd op http://pythonfiddle.com/dfa-simple-implementation/
 
 @load base/frameworks/notice
 @load-plugin Crysys::S7comm
@@ -13,6 +15,7 @@ export {
 
     redef enum Notice::Type += {
 		Unknown_IP,
+        Invalid_IP
 	};
 
     redef ignore_checksums = T;
@@ -55,34 +58,58 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
     # Is dit wel een valid ip address?
     if(!is_v4_addr(ip)) {
 
+        NOTICE([
+            $note=Invalid_IP,
+            $msg=fmt("Invalid ip address"),
+            $conn = c
+        ]);
+
     } else{
 
-        # Is er al een channel voor dit ip?
-        if (ip !in channels) {
+        # Kijk of we in learning mode zitten of enforcement mode
+        if(enforcement_mode) {
 
-            # Kijk of we in learning mode zitten of enforcement mode
-            if (!enforcement_mode) {
-                # Learning mode, dus voeg nieuwe data toe
-
-                # Maak een nieuwe channel met bijhorende DFA
-                print "added new channel: " + addr_to_uri(ip);
-
-                local dfa: DFA;
-                # Vul DFA in
-
-                # Voeg channel toe
-                channels[ip] = dfa;
-            } else {
-                # Enforcement mode, onbekend ip address, dus alarm
+            if(ip !in channels) {
+                # Onbekend ip address, dus alarm
 
                 NOTICE([
                     $note=Unknown_IP,
                     $msg=fmt("Unknown IP address found: %s",
                     addr_to_uri(ip)),
-                    $conn = c
+                        $conn = c
                 ]);
+            } else {
 
+                # Get DFA voor deze channel
+                local channel_enforcement_dfa: DFA = channels[ip];
+
+                # DFA enforcement logic
+                run_with_input_list (channel_enforcement_dfa);
             }
+
+        } else {
+
+             # Is er al een channel voor dit ip?
+            if (ip !in channels) {
+
+                # Maak een nieuwe channel met bijhorende DFA
+                print "added new channel: " + addr_to_uri(ip);
+
+                local new_channel_dfa: DFA;
+                # Vul DFA in
+
+                # Voeg channel toe
+                channels[ip] = new_channel_dfa;
+
+            } else {
+               
+                 # Get DFA voor deze channel
+                local channel_learning_dfa: DFA = channels[ip];
+
+                # DFA learning logic
+
+            } 
+
         }
     }
 }
