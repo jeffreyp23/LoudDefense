@@ -116,7 +116,7 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
 
             } else {
                
-                print "[Channels][" + addr_to_uri(ip) + "][DFA] learning....";
+                print "[Channels][" + addr_to_uri(ip) + "][DFA] Nieuwe data, learning....";
 
                  # Get DFA voor deze channel
                 local channel_learning_dfa: DFA = channels[ip];
