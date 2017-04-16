@@ -145,7 +145,7 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
                 local result: bool = F;
 
                 # DFA enforcement logic
-                result = run_dfa (s7_header$msgtype, sha256_hash(s7_header$functypenum), channel_enforcement_dfa);
+                result = run_dfa (s7_header$msgtype, sha256_hash(s7_header$functype), channel_enforcement_dfa);
 
                 # DFA kan state niet vinden, dus alarm
                 if (!result) {
@@ -175,7 +175,7 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
                 # Maak de eerste DFA state
                 local new_dfa_state: DFA_State;
                 new_dfa_state$state = s7_header$msgtype;
-                new_dfa_state$symbol = sha256_hash(s7_header$functypenum);
+                new_dfa_state$symbol = sha256_hash(s7_header$functype);
 
                 # Push de accept state
                 add new_channel_dfa$accept_states[new_dfa_state];
@@ -189,7 +189,7 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
                 # Schrijf naar log. (jajaja er wordt dubbel gehashed :) )
                 Log::write( S7Dfa::LOG, [$channel=ip,
                                 $state=s7_header$msgtype,
-                                $symbol=sha256_hash(s7_header$functypenum, s7_data)]);
+                                $symbol=sha256_hash(s7_header$functype, s7_data)]);
             
                 print "[Channels][" + addr_to_uri(ip) + "] Added nieuwe DFA";
 
@@ -198,7 +198,7 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
                  # Get DFA voor deze channel
                 local channel_learning_dfa: DFA = channels[ip];
 
-                local checkState: DFA_State = [$state = s7_header$msgtype, $symbol = sha256_hash(s7_header$functypenum)];
+                local checkState: DFA_State = [$state = s7_header$msgtype, $symbol = sha256_hash(s7_header$functype)];
 
                 # Kijk of we deze data al een keer gezien hebben. (check of we de state al hebben)
                 if (checkState !in channel_learning_dfa$accept_states) {
