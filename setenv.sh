@@ -1,0 +1,1 @@
+export BRO_PLUGIN_PATH=/home/jeffrey/bro-step7-plugin/build
