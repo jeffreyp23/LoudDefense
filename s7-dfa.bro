@@ -16,7 +16,8 @@ export {
     # Eigen notice types
     redef enum Notice::Type += {
 		Unknown_IP,
-        Invalid_IP
+        Invalid_IP,
+        Unknown_DFA_State
 	};
 
     # Logs toeveoegen
@@ -57,20 +58,39 @@ export {
 
 }
 
-function transition_to_state_with_input (dfa: DFA) {
+# DFA transition functie
+function transition_to_state_with_input_dfa (msgtype: string, symbol:string, dfa: DFA) {
+    # Volgens mij is dat alleen nodig als we een custom transition functie willen.
+    # Wat we voor nu willen is denk ik alleen een simpele check of we de data al gezien hebben.
 
+    local search_dfa_state: DFA_State;
+    search_dfa_state$state = msgtype;
+    search_dfa_state$symbol = symbol;
+
+    dfa$current_state = search_dfa_state;
 }
 
-function in_accept_state (dfa: DFA) {
-
+# Kijk of de state die we hebben in de accept states zit
+function in_accept_state_dfa (dfa: DFA) : bool {
+    return dfa$current_state in dfa$accept_states;
 }
 
-function go_to_initial_state (dfa: DFA) {
-
+# Zet de current state naar de start state
+function go_to_initial_state_dfa (dfa: DFA) {
+    dfa$current_state = dfa$start_state;
 }
 
-function run_with_input_list (dfa: DFA) {
+function run_dfa (msgtype:string, symbol:string, dfa: DFA) : bool {
 
+    # Ga naar de eerste state
+    go_to_initial_state_dfa (dfa);
+
+    # Transition functie
+    transition_to_state_with_input_dfa (msgtype, symbol, dfa);
+
+    # Kijk of het resultaat van de transition functie in de accept states zit aka
+    # de states geleerd in de learning fase
+    return in_accept_state_dfa (dfa);
 }
 
 event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: count) {
@@ -114,15 +134,31 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
                     $note=Unknown_IP,
                     $msg=fmt("Unknown IP address found: %s",
                     addr_to_uri(ip)),
-                        $conn = c
+                    $conn = c
                 ]);
             } else {
 
                 # Get DFA voor deze channel
                 local channel_enforcement_dfa: DFA = channels[ip];
 
+                # DFA enforcement logic result
+                local result: bool = F;
+
                 # DFA enforcement logic
-                run_with_input_list (channel_enforcement_dfa);
+                result = run_dfa (s7_header$msgtype, sha256_hash(s7_header$functypenum), channel_enforcement_dfa);
+
+                # DFA kan state niet vinden, dus alarm
+                if (!result) {
+
+                    NOTICE([
+                        $note=Unknown_DFA_State,
+                        $msg=fmt("Unknown DFA state!"),
+                        $conn = c
+                    ]);
+
+                    print "Unknown_DFA_State !!";
+
+                }
             }
 
         } else {
@@ -135,9 +171,20 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
 
                 # Maak een nieuwe DFA en vul deze in
                 local new_channel_dfa: DFA;
-                local hashed_s7_header_fields: string = sha256_hash(s7_header$functypenum);
 
-                add new_channel_dfa$states[[$state = s7_header$msgtype, $symbol = sha256_hash(s7_header$functypenum, s7_data)]];
+                # Maak de eerste DFA state
+                local new_dfa_state: DFA_State;
+                new_dfa_state$state = s7_header$msgtype;
+                new_dfa_state$symbol = sha256_hash(s7_header$functypenum);
+
+                # Push de accept state
+                add new_channel_dfa$accept_states[new_dfa_state];
+
+                # Zet de start state naar de eerste state
+                new_channel_dfa$start_state = new_dfa_state;
+                
+                # Voeg channel toe
+                channels[ip] = new_channel_dfa;
 
                 # Schrijf naar log. (jajaja er wordt dubbel gehashed :) )
                 Log::write( S7Dfa::LOG, [$channel=ip,
@@ -145,8 +192,6 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
                                 $symbol=sha256_hash(s7_header$functypenum, s7_data)]);
             
                 print "[Channels][" + addr_to_uri(ip) + "] Added nieuwe DFA";
-                # Voeg channel toe
-                channels[ip] = new_channel_dfa;
 
             } else {
 
@@ -156,12 +201,12 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
                 local checkState: DFA_State = [$state = s7_header$msgtype, $symbol = sha256_hash(s7_header$functypenum)];
 
                 # Kijk of we deze data al een keer gezien hebben. (check of we de state al hebben)
-                if (checkState !in channel_learning_dfa$states) {
+                if (checkState !in channel_learning_dfa$accept_states) {
 
                     print "[Channels][" + addr_to_uri(ip) + "][DFA] Nieuwe data (" + s7_header$msgtype +"), learning....";
 
                     # DFA learning logic
-                    add channel_learning_dfa$states[checkState];
+                    add channel_learning_dfa$accept_states[checkState];
 
                     # Schrijf naar log
                     Log::write( S7Dfa::LOG, [$channel=ip,
@@ -177,4 +222,10 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
 # Eigen logging toevoegen
 event bro_init () {
      Log::create_stream(LOG, [$columns=DFA_LOG, $path="dfa"]);
+
+     if (enforcement_mode) {
+        print "Enforcement mode";
+     } else {
+        print "Learning mode";
+     }
 } 
