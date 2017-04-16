@@ -2,8 +2,8 @@
 Bro project s7 intrusion detection system
 
 ## Inleiding
-* Het s7-dfa.bro script bevat de Bro implementatie van de DFA.
-* Het sampledata.txt bestand bevat 1 packet van het s7 protocol
+* De Bro map bevat alle spullen voor Bro
+* De rest is de webapplicatie
 
 ## Boeiende velden
 c: Connection
