@@ -11,6 +11,11 @@ $widget-height: 310px;
 $font-weight-bold: 600;
 $font-size-large: 22px;
 
+// Angular material override
+
+md-content {
+  background-color: white !important;
+}
 
 // LAYOUT
 body {

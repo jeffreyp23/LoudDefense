@@ -20,31 +20,31 @@ angular.module('angularMaterialAdmin', ['ngAnimate', 'ngCookies',
           title: 'Dashboard'
         }
       })
-      .state('home.profile', {
-        url: '/profile',
-        templateUrl: 'app/views/profile.html',
-        controller: 'ProfileController',
+      .state('home.alarms', {
+        url: '/alarms',
+        templateUrl: 'app/views/alarms.html',
+        controller: 'AlarmsGridController',
         controllerAs: 'vm',
         data: {
-          title: 'Profile'
+          title: 'Alarms'
         }
       })
-      .state('home.table', {
-        url: '/table',
-        controller: 'TableController',
+      .state('home.assets', {
+        url: '/assets',
+        controller: 'AssetsController',
         controllerAs: 'vm',
-        templateUrl: 'app/views/table.html',
+        templateUrl: 'app/views/assets.html',
         data: {
-          title: 'Table'
+          title: 'Assets'
         }
       })
-      .state('home.data-table', {
-        url: '/data-table',
-        controller: 'DataTableController',
+      .state('home.logs', {
+        url: '/logs',
+        controller: 'LogsController',
         controllerAs: 'vm',
-        templateUrl: 'app/views/data-table.html',
+        templateUrl: 'app/views/logs.html',
         data: {
-          title: 'Table'
+          title: 'Logs'
         }
       });
 

@@ -39,7 +39,6 @@
     function selectItem (item) {
       vm.title = item.name;
       vm.toggleItemsList();
-      vm.showSimpleToast(vm.title);
     }
 
     function showActions($event) {
@@ -58,8 +57,8 @@
           var vm = this;
 
           vm.actions = [
-            { name: 'Share', icon: 'share', url: 'https://twitter.com/intent/tweet?text=Angular%20Material%20Dashboard%20https://github.com/flatlogic/angular-material-dashboard%20via%20@flatlogicinc' },
-            { name: 'Star', icon: 'star', url: 'https://github.com/flatlogic/angular-material-dashboard/stargazers' }
+            { name: 'Share', icon: 'share', url: '' },
+            { name: 'Star', icon: 'star', url: '' }
           ];
 
           vm.performAction = function(action) {

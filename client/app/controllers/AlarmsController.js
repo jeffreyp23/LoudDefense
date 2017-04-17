@@ -1,7 +1,7 @@
 (function () {
     angular
         .module('app')
-        .controller('WarningsController', [
+        .controller('AlarmsController', [
             WarningsController
         ]);
 

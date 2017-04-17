@@ -7,8 +7,14 @@ var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
+var alarms = require('./routes/alarms');
+var assets = require('./routes/assets');
+var logs = require('./routes/logs');
 
+var cors = require('cors');
 var app = express();
+
+app.use(cors());
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -19,6 +25,9 @@ app.use(cookieParser());
 
 app.use('/', index);
 app.use('/users', users);
+app.use('/alarms', alarms);
+app.use('/assets', assets);
+app.use('/logs', logs);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

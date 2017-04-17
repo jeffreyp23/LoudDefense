@@ -17,17 +17,17 @@
       {
         name: 'Alarms',
         icon: 'person',
-        sref: '.profile'
+        sref: '.alarms'
       },
       {
         name: 'Assets',
         icon: 'view_module',
-        sref: '.table'
+        sref: '.assets'
       },
       {
         name: 'Logs',
         icon: 'view_module',
-        sref: '.data-table'
+        sref: '.logs'
       }
     ];
 

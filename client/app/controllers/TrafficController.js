@@ -1,7 +1,7 @@
 (function () {
     angular
         .module('app')
-        .controller('VisitorsController', [
+        .controller('TrafficController', [
             VisitorsController
         ]);
 

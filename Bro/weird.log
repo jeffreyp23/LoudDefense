@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator  ,
+#empty_field    (empty)
+#unset_field    -
+#path   weird
+#open   2017-04-16-16-54-43
+#fields ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       name    addl    notice  peer
+#types  time    string  addr    port    addr    port    string  string  bool    string
+1408528803.977452       CmU3fS2FHuqOoiGQm1      192.168.1.10    4185    192.168.1.40    102     Job request coming from the slave       -       F       bro
+1408528803.977707       CmU3fS2FHuqOoiGQm1      192.168.1.10    4185    192.168.1.40    102     Job Response coming from master!        -       F       bro
+#close  2017-04-16-16-54-43

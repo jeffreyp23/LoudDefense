@@ -4,11 +4,11 @@
     </md-progress-linear>
 
     <md-radio-group ng-model="vm.reloadServer">
-        <md-radio-button class="md-accent" value="Staging">Staging server</md-radio-button>
-        <md-radio-button class="md-accent" value="Production">Production server</md-radio-button>
+        <md-radio-button class="md-accent" value="learningMode">Switch to learning mode</md-radio-button>
+        <md-radio-button class="md-accent" value="enforcementMode">Switch to enforcement mode</md-radio-button>
     </md-radio-group>
 
     <md-button class="md-raised md-warn" ng-click="vm.performProgress()">
-        Reload server
+        Execute
     </md-button>
 </md-content>

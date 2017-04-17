@@ -1,0 +1,32 @@
+<div class="table-responsive-vertical md-whiteframe-z1">
+    <!-- TODO: Replace table to table component when https://github.com/angular/material/issues/796 will closed -->
+    <md-toolbar class="md-table-toolbar md-default">
+        <div class="md-toolbar-tools">
+            <span>Alarms</span>
+        </div>
+    </md-toolbar>
+
+    <!-- exact table from live demo -->
+    <md-table-container>
+        <table md-table md-row-select multiple ng-model="selected" class="table table-hover table-bordered" >
+            <thead md-head md-order="query.order" md-on-reorder="vm.getItems()">
+            <tr md-row>
+                <th md-column md-numeric>ID</th>
+                <th md-column md-order-by="nameToLower"><span>Name</span></th>
+                <th md-column md-numeric md-order-by="calories.value"><span>source IP</span></th>
+                <th md-column md-numeric md-order-by="calories.value"><span>destination IP</span></th>
+            </tr>
+            </thead>
+            <tbody md-body>
+            <tr md-row md-select="item" md-select-id="name" md-auto-select ng-repeat="item in vm.tableData track by $index">
+                <td md-cell>{{$index}}</td>
+                <td md-cell>{{item.state}}</td>
+                <td md-cell>{{item.srcip}}</td>
+                <td md-cell>{{item.dstip}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </md-table-container>
+
+    <md-table-pagination md-limit="query.limit" md-limit-options="[5, 10, 15]" md-page="query.page" md-total="{{vm.totalItems}}" md-on-paginate="vm.getItems()" md-page-select></md-table-pagination>
+</div>

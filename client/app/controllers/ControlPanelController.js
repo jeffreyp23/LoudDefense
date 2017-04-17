@@ -12,7 +12,7 @@
 
         vm.buttonEnabled = false;
         vm.showProgress = false;
-        vm.reloadServer = 'Staging';
+        vm.reloadServer = 'learningMode';
         vm.performProgress = performProgress;
         vm.determinateValue = 10;
 

@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dfa
+#open	2017-04-16-16-52-50
+#fields	channel	state	symbol
+#types	addr	string	string
+192.168.1.10	S7 ROSCTR JOB	121f136cd7bc328b143b044a8aa855b981f618527bcba06b4f45dff948f000ac
+192.168.1.10	S7 ROSCTR ACK_DATA	121f136cd7bc328b143b044a8aa855b981f618527bcba06b4f45dff948f000ac
+#close	2017-04-16-16-52-50
