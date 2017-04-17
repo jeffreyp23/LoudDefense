@@ -13,7 +13,7 @@
 
     function server($http){
 
-        var url = "http://localhost:9000";
+        var url = "http://localhost:9000/api";
 
 
         return {

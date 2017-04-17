@@ -22,7 +22,7 @@ router.get('/', function(req, res, next) {
 
         if(line[0] !== '#') {
 
-            var properties = line.split(/\s{2,}/);
+            var properties = line.split(/\s+/);
 
             alarms.push({
                 srcip: properties[2],
