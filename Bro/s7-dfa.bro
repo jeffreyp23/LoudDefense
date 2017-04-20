@@ -221,11 +221,33 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
 
 # Eigen logging toevoegen
 event bro_init () {
-     Log::create_stream(LOG, [$columns=DFA_LOG, $path="dfa"]);
 
-     if (enforcement_mode) {
-        print "Enforcement mode";
-     } else {
-        print "Learning mode";
-     }
+    local notice_filter: Log::Filter =
+    [
+       $name="notice_sqlite",
+       $path="/home/jeffrey/s7_test/bro_notice",
+       $config=table(["tablename"] = "notice"),
+       $writer=Log::WRITER_SQLITE
+    ];
+
+    Log::add_filter(Notice::LOG, notice_filter);
+
+
+    local weird_filter: Log::Filter =
+    [
+      $name="weird_sqlite",
+      $path="/home/jeffrey/s7_test/bro_weird",
+      $config=table(["tablename"] = "weird"),
+      $writer=Log::WRITER_SQLITE
+    ];
+
+    Log::add_filter(Weird::LOG, weird_filter);
+
+    Log::create_stream(LOG, [$columns=DFA_LOG, $path="dfa"]);
+
+    if (enforcement_mode) {
+       print "Enforcement mode";
+    } else {
+       print "Learning mode";
+    }
 } 

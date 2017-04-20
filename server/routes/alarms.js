@@ -7,32 +7,63 @@ var router = express.Router();
 
 var fs = require('fs');
 
-var noticeFilePath = "./Bro/notice.log";
+var sqlite3 = require('sqlite3').verbose();
 
-router.get('/', function(req, res, next) {
+var noticeFilePath = "./Bro/bro_notice.sqlite";
 
 
-    var lineReader = require('readline').createInterface({
-        input: require('fs').createReadStream(noticeFilePath)
+router.get('/count', function (req, res, next) {
+
+    var db = new sqlite3.Database(noticeFilePath);
+
+    var count = 0;
+
+    db.serialize(function () {
+
+        db.each("SELECT COUNT(*) AS c FROM notice", function (err, row) {
+
+            if (err) {
+                console.log(err);
+            } else {
+
+                count = row.c;
+            }
+        });
+
     });
+
+    db.close(function () {
+        res.json({c: count});
+    });
+
+});
+
+router.get('/', function (req, res, next) {
+
+    var db = new sqlite3.Database(noticeFilePath);
 
     var alarms = [];
 
-    lineReader.on('line', function (line) {
+    db.serialize(function () {
 
-        if(line[0] !== '#') {
+        db.each("SELECT * FROM notice", function (err, row) {
 
-            var properties = line.split(/\s+/);
+            if (err) {
+                console.log(err);
+            } else {
 
-            alarms.push({
-                srcip: properties[2],
-                dstip: properties[4],
-                state: properties[10]
-            });
-        }
+                alarms.push({
+                    srcip: row["id.orig_h"],
+                    dstip: row["id.resp_h"],
+                    state: row["msg"]
+                });
+
+            }
+        });
+
     });
 
-    lineReader.on('close', function () {
+    db.close(function () {
         res.json(alarms);
     });
 

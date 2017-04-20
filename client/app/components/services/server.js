@@ -20,6 +20,9 @@
             getAlarms : function() {
                 return $http.get(url + '/alarms')
             },
+            getAlarmsCount: function() {
+                return $http.get(url + '/alarms/count')
+            },
             getAssets: function() {
                 return $http.get(url + '/assets')
             },

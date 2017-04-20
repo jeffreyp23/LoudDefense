@@ -7,35 +7,42 @@ var router = express.Router();
 
 var fs = require('fs');
 
-var noticeFilePath = "./Bro/weird.log";
+var sqlite3 = require('sqlite3').verbose();
+
+var logsFilePath = "./Bro/bro_weird.sqlite";
+
 
 router.get('/', function(req, res, next) {
 
-
-    var lineReader = require('readline').createInterface({
-        input: require('fs').createReadStream(noticeFilePath)
-    });
+    var db = new sqlite3.Database(logsFilePath);
 
     var logs = [];
 
-    lineReader.on('line', function (line) {
+    db.serialize(function () {
 
-        if(line[0] !== '#') {
+        db.each("SELECT * FROM weird", function (err, row) {
 
-            var properties = line.split(/\s{2,}/);
+            if (err) {
+                console.log(err);
+            } else {
 
-            logs.push({
-                srcip: properties[2],
-                dstip: properties[4],
-                port: properties[5],
-                log: properties[6]
-            });
-        }
+                logs.push({
+                    srcip: row["id.orig_h"],
+                    dstip: row["id.resp_h"],
+                    port: row["id.resp_p"],
+                    log: row["name"]
+                });
+
+            }
+        });
+
     });
 
-    lineReader.on('close', function () {
+    db.close(function () {
         res.json(logs);
     });
+
+
 
 });
 
