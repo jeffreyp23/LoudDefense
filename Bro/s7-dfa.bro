@@ -222,6 +222,8 @@ event siemenss7_packet (c: connection, msgtype: count, functype: count, errno: c
 # Eigen logging toevoegen
 event bro_init () {
 
+    print "S7Dfa INIT";
+
     local notice_filter: Log::Filter =
     [
        $name="notice_sqlite",
