@@ -227,7 +227,7 @@ event bro_init () {
     local notice_filter: Log::Filter =
     [
        $name="notice_sqlite",
-       $path="/home/jeffrey/s7_test/bro_notice",
+       $path="/var/log/bro_notice",
        $config=table(["tablename"] = "notice"),
        $writer=Log::WRITER_SQLITE
     ];
@@ -238,14 +238,14 @@ event bro_init () {
     local weird_filter: Log::Filter =
     [
       $name="weird_sqlite",
-      $path="/home/jeffrey/s7_test/bro_weird",
+      $path="/var/log/bro_weird",
       $config=table(["tablename"] = "weird"),
       $writer=Log::WRITER_SQLITE
     ];
 
     Log::add_filter(Weird::LOG, weird_filter);
 
-    Log::create_stream(LOG, [$columns=DFA_LOG, $path="dfa"]);
+    Log::create_stream(LOG, [$columns=DFA_LOG, $path="/var/log/dfa"]);
 
     if (enforcement_mode) {
        print "Enforcement mode";
