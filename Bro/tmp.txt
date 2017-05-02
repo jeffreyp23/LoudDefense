@@ -1,4 +1,4 @@
 1
 2
 
-redef S7Dfa::enforcement_mode = F;
+redef S7Dfa::enforcement_mode = T;

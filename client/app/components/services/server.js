@@ -28,6 +28,12 @@
             },
             getLogs: function() {
                 return $http.get(url + '/logs')
+            },
+            postMode: function(mode) {
+                return $http.post(url + '/mode', {value: mode})
+            },
+            getMode: function() {
+                return $http.get(url + '/mode')
             }
         };
     }

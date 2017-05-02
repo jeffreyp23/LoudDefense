@@ -44,4 +44,30 @@ router.post('/', function (req, res, next) {
 
 });
 
+router.get('/', function (req, res) {
+
+    fs.readFile(sitepath, function (err, data) {
+        if (err) {
+            res.status(500).json(err);
+        } else {
+
+            var theFile = data.toString().split("\n");
+            var line = theFile[theFile.length - 1];
+
+            var mode = line.slice(line.length - 2, line.length - 1);
+
+            var response = {};
+
+            if (mode === 'T') {
+                response.mode = true;
+            } else {
+                response.mode = false;
+            }
+
+            res.json(response);
+
+        }
+    });
+});
+
 module.exports = router;
