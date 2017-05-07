@@ -227,7 +227,8 @@ event bro_init () {
        $name="notice_sqlite",
        $path="/var/log/bro_notice",
        $config=table(["tablename"] = "notice"),
-       $writer=Log::WRITER_SQLITE
+       $writer=Log::WRITER_SQLITE,
+       $interv=5 sec
     ];
 
     Log::add_filter(Notice::LOG, notice_filter);
@@ -238,7 +239,8 @@ event bro_init () {
       $name="weird_sqlite",
       $path="/var/log/bro_weird",
       $config=table(["tablename"] = "weird"),
-      $writer=Log::WRITER_SQLITE
+      $writer=Log::WRITER_SQLITE,
+      $interv=5 sec
     ];
 
     Log::add_filter(Weird::LOG, weird_filter);
