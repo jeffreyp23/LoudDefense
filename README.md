@@ -85,6 +85,7 @@ c: Connection
 * clear.sh / Leegt het bro script, dus dan is het makkelijk werken met nano
 * run.sh / Runt het bro script. Hierin staat ook de enforcement_mode
 * setenv.sh / Zet de bro plugin env variable naar het path van de s7comm plugin
+* clean.sh / clear de persistent variables
 
 ## Handige links
 * [Bro] https://www.bro.org/sphinx/script-reference/statements.html
