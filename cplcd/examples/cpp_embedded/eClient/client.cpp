@@ -37,6 +37,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+#include <fstream>
+#include <string>
 #include "s7_client.h"
 #include "s7_text.h"
 
@@ -50,6 +53,7 @@ byte Buffer[65536]; // 64 K buffer
 int SampleDBNum = 1000;
 
 char *Address;     // PLC IP Address
+std::string fileName;    // name of the file to write to
 int Rack = 0, Slot = 2; // Default Rack and Slot
 
 int ok = 0; // Number of test pass
@@ -57,6 +61,9 @@ int ko = 0; // Number of test failure
 
 bool JobDone = false;
 int JobResult = 0;
+
+
+ofstream file; // declare the file to write the data to
 
 //------------------------------------------------------------------------------
 //  Async completion callback 
@@ -73,13 +80,13 @@ void S7API CliCompletion(void *usrPtr, int opCode, int opResult)
 void Usage()
 {
 	printf("Usage\n");
-	printf("  client <IP> [-param]\n");
+	printf("  client<IP> [-param] [filename]\n");
 	printf("Example\n");
-	printf("  client 192.168.1.101 --start\n");
+	printf("  client 192.168.1.101 --start test1\n");
 	printf("or\n");
-	printf("  client 192.168.1.101 --stop\n");
+	printf("  client 192.168.1.101 --stop test2\n");
 	printf("or\n");
-	printf("  client 192.168.1.101 --test\n");
+	printf("  client 192.168.1.101 --test test3\n");
 	getchar();
 }
 //------------------------------------------------------------------------------
@@ -142,19 +149,32 @@ bool Check(int Result, const char * function)
 	printf("+-----------------------------------------------------\n");
 	printf("| %s\n", function);
 	printf("+-----------------------------------------------------\n");
+
+	file << "" << endl;
+	file << "+-----------------------------------------------------" << endl;
+	file << "| " << function << endl;
+	file << "+-----------------------------------------------------" << endl;
+	
 	if (Result == 0) {
 		printf("| Result         : OK\n");
 		printf("| Execution time : %d ms\n", Client->Time());
 		printf("+-----------------------------------------------------\n");
+
+		file << "| Result         : OK\n" << endl;
+		file << "| Execution time : %d ms\n" << Client->Time() << endl;
+		file << "+-----------------------------------------------------" << endl;
+
 		ok++;
 	}
 	else {
 		printf("| ERROR !!! \n");
+		file << "| ERROR !!! " << endl;
 		if (Result<0)
 			printf("| Library Error (-1)\n");
 		else
 			//printf("| %s\n", ErrCliText(Result).c_str());
 		printf("+-----------------------------------------------------\n");
+		file << "+-----------------------------------------------------" << endl;
 		ko++;
 	}
 	return Result == 0;
@@ -268,6 +288,9 @@ void OrderCode()
 	{
 		printf("  Order Code : %s\n", Info.Code);
 		printf("  Version    : %d.%d.%d\n", Info.V1, Info.V2, Info.V3);
+
+		file << "  Order Code : "<< Info.Code << endl;
+		file << "  Version    : " << Info.V1 << Info.V2 << Info.V3 << endl;
 	};
 }
 //------------------------------------------------------------------------------
@@ -283,6 +306,11 @@ void CpuInfo()
 		printf("  Serial Number    : %s\n", Info.SerialNumber);
 		printf("  AS Name          : %s\n", Info.ASName);
 		printf("  Module Name      : %s\n", Info.ModuleName);
+
+		file << "  Module Type Name : " << Info.ModuleTypeName << endl;
+		file << "  Serial Number    : " << Info.SerialNumber << endl;
+		file << "  AS Name			: " << Info.ASName << endl;
+		file << "  Module Name		: " << Info.ModuleName << endl;
 	};
 }
 //------------------------------------------------------------------------------
@@ -298,6 +326,11 @@ void CpInfo()
 		printf("  Max Connections  : %d \n", Info.MaxConnections);
 		printf("  Max MPI Rate     : %d bps\n", Info.MaxMpiRate);
 		printf("  Max Bus Rate     : %d bps\n", Info.MaxBusRate);
+
+		file << "  Max PDU Length   : " << Info.MaxPduLengt << " bytes" << endl;
+		file << "  Max Connections  : " << Info.MaxConnections  << endl;
+		file << "  Max MPI Rate     : " << Info.MaxMpiRate << " bps" << endl;
+		file << "  Max Bus Rate     : " << Info.MaxBusRate  << " bps" << endl;
 	};
 }
 //------------------------------------------------------------------------------
@@ -312,9 +345,24 @@ void UnitStatus()
 	{
 		switch (Status)
 		{
-		case S7CpuStatusRun: printf("  RUN\n"); break;
-		case S7CpuStatusStop: printf("  STOP\n"); break;
-		default: printf("  UNKNOWN\n"); break;
+		case S7CpuStatusRun: 
+		{
+			printf("  RUN\n");
+			file << "  RUN" << endl;
+			break;
+		}
+		case S7CpuStatusStop: 
+		{
+			printf("  STOP\n"); 
+			file << "  STOP" << endl;
+			break;
+		}
+		default: 
+		{
+			printf("  UNKNOWN\n"); 
+			file << "  UNKNOWN" << endl;
+			break;
+		}
 		}
 	};
 }
@@ -455,6 +503,11 @@ bool CliConnect()
 		printf("  Connected to   : %s (Rack=%d, Slot=%d)\n", Address, Rack, Slot);
 		printf("  PDU Requested  : %d bytes\n", Client->PDURequest);
 		printf("  PDU Negotiated : %d bytes\n", Client->PDULength);
+
+		file <<"  Connected to   : "<< Address << "(Rack=" << Rack << "Slot=" << Slot << ")" << endl;
+		file <<"  PDU Requested  : "<< Client->PDURequest << " bytes"<< endl;
+		file <<"  PDU Negotiated : "<< Client->PDULength << " bytes" << endl;
+
 	};
 	return res == 0;
 }
@@ -474,11 +527,11 @@ void PerformTests()
 	CpuInfo();
 	CpInfo();
 	UnitStatus();
-	ReadSzl_0011_0000();
-	UploadDB0();
-	AsCBUploadDB0();
-	AsEWUploadDB0();
-	AsPOUploadDB0();
+	//ReadSzl_0011_0000();
+	//UploadDB0();
+	//AsCBUploadDB0();
+	//AsEWUploadDB0();
+	//AsPOUploadDB0();
 	MultiRead();
 	//Up_DownloadFC1();
 }
@@ -487,6 +540,15 @@ void PerformTests()
 //------------------------------------------------------------------------------
 void Summary()
 {
+	file << "" << endl;
+	file << "+-----------------------------------------------------" << endl;
+	file << "| Test Summary " << endl;
+	file << "+-----------------------------------------------------" << endl;
+	file << "| Performed : " << (ok + ko) << endl;
+	file << "| Passed    : " << ok << endl;
+	file << "| Failed    : " << ko << endl;
+	file << "+-----------------------------------------------------" << endl;
+
 	printf("\n");
 	printf("+-----------------------------------------------------\n");
 	printf("| Test Summary \n");
@@ -506,22 +568,18 @@ int main(int argc, char* argv[])
 	int start = 0;
 	int test = 0;
 	int adrPos = 2;
+	int fileNamePos = 3;
 
 	// Get Progran args (we need the client address and optionally Rack and Slot)  
-	if (argc<2)//argc != 2 && argc != 3)
+	if (argc < 3)//argc != 2 && argc != 3)
 	{
 		Usage();
 		printf("fout %d", argc);
 		return 1;
 	}
 	Address = argv[1];
-	//if (argc == 4)
-	//{
-	//	Rack = atoi(argv[2]);
-	//	Slot = atoi(argv[3]);
-	//}
 
-	if (argc > 2)
+	if (argc > 3)
 	{
 		if (strcmp(argv[adrPos], "--stop") == 0)
 		{
@@ -539,6 +597,15 @@ int main(int argc, char* argv[])
 			printf("testing...\n");
 		}
 	}
+
+	
+	fileName.append( argv[fileNamePos] );
+	fileName.append(".txt");
+
+	file.open( fileName );
+	file << argv[adrPos-1] << endl; // IP address
+	file << argv[adrPos] << endl; // execution type
+	
 
 	// Client Creation
 	Client = new TSnap7Client();
@@ -571,7 +638,7 @@ int main(int argc, char* argv[])
 
 	// Deletion
 	delete Client;
-
+	file.close();
 	return 0;
 }
 
