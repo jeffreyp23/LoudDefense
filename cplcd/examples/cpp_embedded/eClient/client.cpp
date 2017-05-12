@@ -106,12 +106,14 @@ void hexdump(void *mem, unsigned int len)
 		if (i % HEXDUMP_COLS == 0)
 		{
 			printf("0x%04x: ", i);
+			file << "0x" << i << " " << endl;
 		}
 
 		/* print hex data */
 		if (i < len)
 		{
 			printf("%02x ", 0xFF & ((char*)mem)[i]);
+			file << "0x" << (0xFF & ((char*)mem)[i]) << endl;
 		}
 		else /* end of block, just aligning for ASCII dump */
 		{
@@ -126,17 +128,21 @@ void hexdump(void *mem, unsigned int len)
 				if (j >= len) /* end of block, not really printing */
 				{
 					putchar(' ');
+					file << " ";
 				}
 				else if (isprint((((char*)mem)[j] & 0x7F))) /* printable char */
 				{
 					putchar(0xFF & ((char*)mem)[j]);
+					file << (0xFF & ((char*)mem)[j]);
 				}
 				else /* other char */
 				{
 					putchar('.');
+					file << ".";
 				}
 			}
 			putchar('\n');
+			file << endl;
 		}
 	}
 }
@@ -378,6 +384,7 @@ void UploadDB0()
 	if (Check(res, "Block Upload (SDB 0)"))
 	{
 		printf("Dump (%d bytes) :\n", Size);
+		file << "Dump " << Size << " bytes" << endl;
 		hexdump(&Buffer, Size);
 	}
 }
@@ -528,7 +535,7 @@ void PerformTests()
 	CpInfo();
 	UnitStatus();
 	//ReadSzl_0011_0000();
-	//UploadDB0();
+	UploadDB0();
 	//AsCBUploadDB0();
 	//AsEWUploadDB0();
 	//AsPOUploadDB0();
