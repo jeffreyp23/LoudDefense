@@ -12,37 +12,45 @@ var sqlite3 = require('sqlite3').verbose();
 var logsFilePath = "./Bro/bro_weird.sqlite";
 
 
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
 
-    var db = new sqlite3.Database(logsFilePath);
+    fs.access(logsFilePath, fs.constants.F_OK, function (err) {
 
-    var logs = [];
+        if (!err) {
 
-    db.serialize(function () {
+            var db = new sqlite3.Database(logsFilePath);
 
-        db.each("SELECT * FROM weird", function (err, row) {
+            var logs = [];
 
-            if (err) {
-                console.log(err);
-            } else {
+            db.serialize(function () {
 
-                logs.push({
-                    srcip: row["id.orig_h"],
-                    dstip: row["id.resp_h"],
-                    port: row["id.resp_p"],
-                    log: row["name"]
+                db.each("SELECT * FROM weird", function (err, row) {
+
+                    if (err) {
+                        console.log(err);
+                    } else {
+
+                        logs.push({
+                            srcip: row["id.orig_h"],
+                            dstip: row["id.resp_h"],
+                            port: row["id.resp_p"],
+                            log: row["name"]
+                        });
+
+                    }
                 });
 
-            }
-        });
+            });
 
+            db.close(function () {
+                res.json(logs);
+            });
+
+        } else {
+
+            res.json([]);
+        }
     });
-
-    db.close(function () {
-        res.json(logs);
-    });
-
-
 
 });
 

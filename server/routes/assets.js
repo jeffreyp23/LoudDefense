@@ -7,38 +7,46 @@ var router = express.Router();
 
 var fs = require('fs');
 
-var noticeFilePath = "./Bro/dfa.log";
+var sqlite3 = require('sqlite3').verbose();
+
+var assetsFilePath = "/var/log/bro_assets.sqlite";
 
 router.get('/', function (req, res, next) {
 
+    fs.access(assetsFilePath, fs.constants.F_OK, function (err) {
 
-    var lineReader = require('readline').createInterface({
-        input: require('fs').createReadStream(noticeFilePath)
-    });
+        if (!err) {
 
-    var assets = [];
+            var db = new sqlite3.Database(assetsFilePath);
 
-    lineReader.on('line', function (line) {
+            var assets = [];
 
-        if (line[0] !== '#') {
+            db.serialize(function () {
 
-            var properties = line.split(/\s+/);
+                db.each("SELECT * FROM assets", function (err, row) {
 
-            if (assets.filter(function (item) {
-                    return item.ip === properties[0]
-                }).length === 0) {
+                    if (err) {
+                        console.log(err);
+                    } else {
 
-                assets.push({
-                    ip: properties[0],
-                    name: properties[1].split(/\s/)[0] + " device",
+                        assets.push({
+                            ip: row["ip"],
+                            name: ""
+                        });
+
+                    }
                 });
 
-            }
-        }
-    });
+            });
 
-    lineReader.on('close', function () {
-        res.json(assets);
+            db.close(function () {
+                res.json(assets);
+            });
+
+        } else {
+            res.json([]);
+        }
+
     });
 
 });

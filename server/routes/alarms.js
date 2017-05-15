@@ -14,57 +14,76 @@ var noticeFilePath = "./Bro/bro_notice.sqlite";
 
 router.get('/count', function (req, res, next) {
 
-    var db = new sqlite3.Database(noticeFilePath);
+    fs.access(noticeFilePath, fs.constants.F_OK, function (err) {
 
-    var count = 0;
+        if (!err) {
 
-    db.serialize(function () {
+            var db = new sqlite3.Database(noticeFilePath);
 
-        db.each("SELECT COUNT(*) AS c FROM notice", function (err, row) {
+            var count = 0;
 
-            if (err) {
-                console.log(err);
-            } else {
+            db.serialize(function () {
 
-                count = row.c;
-            }
-        });
+                db.each("SELECT COUNT(*) AS c FROM notice", function (err, row) {
 
-    });
+                    if (err) {
+                        console.log(err);
+                    } else {
 
-    db.close(function () {
-        res.json({c: count});
+                        count = row.c;
+                    }
+                });
+
+            });
+
+            db.close(function () {
+                res.json({c: count});
+            });
+
+        } else {
+
+            res.json({c: 0});
+        }
     });
 
 });
 
 router.get('/', function (req, res, next) {
 
-    var db = new sqlite3.Database(noticeFilePath);
+    fs.access(noticeFilePath, fs.constants.F_OK, function (err) {
 
-    var alarms = [];
+        if (!err) {
 
-    db.serialize(function () {
+            var db = new sqlite3.Database(noticeFilePath);
 
-        db.each("SELECT * FROM notice", function (err, row) {
+            var alarms = [];
 
-            if (err) {
-                console.log(err);
-            } else {
+            db.serialize(function () {
 
-                alarms.push({
-                    srcip: row["id.orig_h"],
-                    dstip: row["id.resp_h"],
-                    state: row["msg"]
+                db.each("SELECT * FROM notice", function (err, row) {
+
+                    if (err) {
+                        console.log(err);
+                    } else {
+
+                        alarms.push({
+                            srcip: row["id.orig_h"],
+                            dstip: row["id.resp_h"],
+                            state: row["msg"]
+                        });
+
+                    }
                 });
 
-            }
-        });
+            });
 
-    });
+            db.close(function () {
+                res.json(alarms);
+            });
 
-    db.close(function () {
-        res.json(alarms);
+        } else {
+            res.json([]);
+        }
     });
 
 });
