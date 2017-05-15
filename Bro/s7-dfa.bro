@@ -17,13 +17,13 @@ export {
 
     # Eigen notice types
     redef enum Notice::Type += {
-		Unknown_IP,
+		Unknown_CHANNEL,
         Invalid_IP,
         Unknown_DFA_State
 	};
 
     # Logs toeveoegen
-    redef enum Log::ID += { LOG };
+    redef enum Log::ID += { LOG, ASSETS_LOG };
 
     # Deze redef is nodig, omdat Bro anders de s7 pakketten grotendeels weggooit
     redef ignore_checksums = T;
@@ -44,13 +44,6 @@ export {
         start_state: DFA_State;
         accept_states: set[DFA_State];
         current_state: DFA_State;
-    };
-
-    # Het log record
-    type DFA_LOG: record {
-        channel: addr &log;
-        state: string &log;
-        symbol: string &log;
     };
 
     # Alle velden van de S7 header die je wilt gebruiken als symbol
@@ -103,10 +96,19 @@ export {
         dstip: addr &log;
     };
 
+    type ASSET: record {
+        ip: addr &log;
+    };
+
     # Hier worden alle channels (ip addressen) opgeslagen
     # Moet nog &persistent toegevoegd worden in de live omgeving
     global channels: table[CHANNEL] of DFA &persistent;
 
+    # Alle assets worden hier opgeslagen
+    global assets: table[addr] of ASSET &persistent;
+
+    # Zorg ervoor dat bepaalde errors niet gespammed kunnen worden
+    global errorOverflow: set[string];
 }
 
 # ------------------------------------ EINDE DECLARATIES -------------------------------------------
@@ -140,7 +142,20 @@ event bro_init () {
 
     Log::add_filter(Weird::LOG, weird_filter);
 
-    Log::create_stream(LOG, [$columns=DFA_LOG, $path="/var/log/dfa"]);
+    Log::create_stream(S7Dfa::ASSETS_LOG,
+    [
+      $columns=ASSET,
+      $path="/var/log/bro_assets"
+    ]);
+
+    local assets_filter: Log::Filter =
+    [
+       $name="assets_sqlite",
+       $config=table(["tablename"] = "assets"),
+       $writer=Log::WRITER_SQLITE
+    ];
+
+    Log::add_filter(S7Dfa::ASSETS_LOG, assets_filter);
 
     if (enforcement_mode) {
        print "Enforcement mode";
@@ -252,8 +267,7 @@ function handlePacket (c: connection) {
 
     local hasData: bool = F;
 
-    # Is als het goed is niet mogelijk, want deze komen in de USER DATA handler,
-    # maar je weet het maar nooit. Blijft Siemens
+    # Check if we data hebben
     if (c?$s7data) {
           data = c$s7data;
           hasData = T;
@@ -266,11 +280,22 @@ function handlePacket (c: connection) {
         if(channel !in channels) {
             # Onbekende channel, dus alarm
 
-            NOTICE([
-                $note=Unknown_IP,
-                $msg=fmt("Unknown channel found"),
-                $conn = c
-            ]);
+            local errMsg = fmt("Unknown channel found. Source: %s, Destination: %s", addr_to_uri(channel$srcip), addr_to_uri(channel$dstip));
+
+            # Als bijvoorbeeld per ongeluk een nieuw device wordt aangesloten,
+            # kan deze ervoor zorgen dat er honderden alarms gegeneerd worden.
+            # Dit if block voorkomt dat.
+            if (errMsg !in errorOverflow) {
+
+                NOTICE([
+                    $note=Unknown_CHANNEL,
+                    $msg=errMsg,
+                    $conn = c
+                ]);
+
+                add errorOverflow[errMsg];
+            }
+
         } else {
 
             # Get DFA voor deze channel
@@ -292,7 +317,7 @@ function handlePacket (c: connection) {
 
                  NOTICE([
                     $note=Unknown_DFA_State,
-                    $msg=fmt("Unknown DFA state!"),
+                    $msg=fmt("%s: %s. Unknown function or different values!", c$s7comm$msgtype, c$s7comm$functype),
                     $conn = c
                 ]);
 
@@ -303,16 +328,16 @@ function handlePacket (c: connection) {
 
      } else {
 
-             # Is er al een channel voor dit ip?
+         # Is er al een channel voor dit ip?
          if (channel !in channels) {
 
-                # Maak een nieuwe channel met bijhorende DFA
+            # Maak een nieuwe channel met bijhorende DFA
             print "[Channels] New channel ";
 
-                # Maak een nieuwe DFA en vul deze in
+            # Maak een nieuwe DFA en vul deze in
             local new_channel_dfa: DFA;
 
-                # Maak de eerste DFA state
+            # Maak de eerste DFA state
             local new_dfa_state: DFA_State;
             new_dfa_state$state = header$msgtype;
 
@@ -322,21 +347,32 @@ function handlePacket (c: connection) {
                 new_dfa_state$symbol = sha256_hash(header2symbol(header));
             }
 
-                # Push de accept state
+            # Push de accept state
             add new_channel_dfa$accept_states[new_dfa_state];
 
-                # Zet de start state naar de eerste state
+            # Zet de start state naar de eerste state
             new_channel_dfa$start_state = new_dfa_state;
 
-                # Voeg channel toe
+            # Voeg channel toe
             channels[channel] = new_channel_dfa;
 
-                # Schrijf naar log. (jajaja er wordt dubbel gehashed :) )
-            Log::write( S7Dfa::LOG, [$channel=channel$srcip,
-                              $state=header$msgtype,
-                              $symbol=sha256_hash(header2symbol(header))]);
-
             print "[Channels] Added nieuwe DFA";
+
+            if (channel$srcip !in assets) {
+
+                local src_asset: ASSET = [$ip = channel$srcip];
+                assets[src_asset$ip] = src_asset;
+
+                Log::write(S7Dfa::ASSETS_LOG, src_asset);
+            }
+
+            if (channel$dstip !in assets) {
+
+                local dst_asset: ASSET = [$ip = channel$dstip];
+                assets[dst_asset$ip] = dst_asset;
+
+                Log::write(S7Dfa::ASSETS_LOG, dst_asset);
+            }
 
          } else {
 
@@ -352,18 +388,13 @@ function handlePacket (c: connection) {
 
             local checkState: DFA_State = [$state = header$msgtype, $symbol = channel_learning_dfa_symbol];
 
-                # Kijk of we deze data al een keer gezien hebben. (check of we de state al hebben)
+            # Kijk of we deze data al een keer gezien hebben. (check of we de state al hebben)
             if (checkState !in channel_learning_dfa$accept_states) {
 
                 print "Learning: " + c$s7comm$msgtype + ": " + c$s7comm$functype;
 
-                    # DFA learning logic
+                # DFA learning logic
                 add channel_learning_dfa$accept_states[checkState];
-
-                    # Schrijf naar log
-                Log::write( S7Dfa::LOG, [$channel=channel$srcip,
-                                 $state=checkState$state,
-                                 $symbol=checkState$symbol]);
             }
         }
 
@@ -390,27 +421,51 @@ event siemenss7_ud_packet(c: connection, msgtype: count, functionmode: count, fu
 }
 
 event siemenss7_read_data_unsigned(c: connection, area: count, db: count, s7type: count, address: count, data: count) {
-    print "Event read data unsigned";
+
+    # Siemens function read packets met unsigned data
+
+    handlePacket(c);
 }
 
 event siemenss7_read_data_signed(c: connection, area: count, db: count, s7type: count, address: count, data: int) {
-    print "Event read data signed";
+
+    # Siemens function read packets met signed data
+
+    handlePacket(c);
 }
 
 event siemenss7_read_data_real(c: connection, area: count, db: count, s7type: count, address: count, data: double) {
-    print "Event read data real";
+
+    # Siemens function read packets met real data
+
+    # Aangezien er heel veel states kunnen onstaan door decimale, worden ze nu omgezet naar ints.
+    c$s7data$ddata = floor(c$s7data$ddata);
+
+    handlePacket(c);
 }
 
 event siemenss7_write_data_unsigned(c: connection, area: count, db: count, s7type: count, address: count, data: count) {
-    print "Event write data unsigned";
+
+    # Siemens function write packets met unsigned data
+
+    handlePacket(c);
 }
 
 event siemenss7_write_data_signed(c: connection, area: count, db: count, s7type: count, address: count, data: int) {
-    print "Event write data signed";
+
+    # Siemens function write packets met signed data
+
+    handlePacket(c);
 }
 
 event siemenss7_write_data_real(c: connection, area: count, db: count, s7type: count, address: count, data: double) {
-    print "Event write data real";
+
+    # Siemens function write packets met real data
+
+    # Aangezien er heel veel states kunnen onstaan door decimale, worden ze nu omgezet naar ints.
+    c$s7data$ddata = floor(c$s7data$ddata);
+
+    handlePacket(c);
 }
 
 # ------------------------------------- EINDE EVENTS -------------------------------------------------
