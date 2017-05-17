@@ -31,6 +31,8 @@
     <ClCompile Include="..\..\..\src\sys\snap_tcpsrvr.cpp" />
     <ClCompile Include="..\..\..\src\sys\snap_threads.cpp" />
     <ClCompile Include="client.cpp" />
+    <ClCompile Include="CryptoProvider.cpp" />
+    <ClCompile Include="PLC.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\core\s7_client.h" />
@@ -47,6 +49,9 @@
     <ClInclude Include="..\..\..\src\sys\snap_tcpsrvr.h" />
     <ClInclude Include="..\..\..\src\sys\snap_threads.h" />
     <ClInclude Include="..\..\..\src\sys\win_threads.h" />
+    <ClInclude Include="CryptoProvider.h" />
+    <ClInclude Include="PLC.h" />
+    <ClInclude Include="sha256.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AA1537B3-D408-4292-8878-60FB0C538EBD}</ProjectGuid>
