@@ -32,11 +32,17 @@
 // It's necessary only compiling Win32 for VisualStudio2013 UP
 // Win64 or other compiler (such C++Builder) don't need of it
 
+#include <fstream>
+#include <iostream>
+
 #include "PLC.h"
 #include "CryptoProvider.h"
 
 int main(int argc, char* argv[])
 {
+	ofstream file;
+	file.open("hash.txt", ios::out | ios::app);
+
 	std::cout << "Connecting to PLC...\n";
 	PLC plc("192.168.0.150");
 
@@ -44,7 +50,10 @@ int main(int argc, char* argv[])
 
 	std::string plc_code = plc.getCode();
 	std::cout << "PLC hash: " << CryptoProvider::sha256(plc_code) << std::endl;
+	file << CryptoProvider::sha256(plc_code) << endl;
 
+
+	file.close();
 	return 0;
 }
 

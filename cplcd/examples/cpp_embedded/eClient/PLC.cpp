@@ -71,19 +71,14 @@ std::string PLC::processBlocks(byte Block_Type, int count)
 	int Size = sizeof(Buffer); // Size is IN/OUT par
 							   // In input it tells the client the size available
 							   // In output it tells us how many bytes were uploaded.
-	std::vector<char*> blocks;
+	std::stringstream ss;
 	for (int i = 0; i < count; i++)
 	{
 		int res = client->Upload(Block_Type, i, &Buffer, Size);
 		if (res == 0)
 		{
-			blocks.push_back((char*)(Buffer));
+			ss << (char*)(Buffer);
 		}
-	}
-
-	std::stringstream ss;
-	for (std::vector<char*>::iterator it = blocks.begin(); it != blocks.end(); ++it) {
-		ss << *it;
 	}
 
 	return ss.str();
