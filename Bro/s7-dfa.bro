@@ -88,6 +88,8 @@ export {
         udata: count &optional &log;
         ## s7 real data
         ddata: double &optional &log;
+        ## s7 bit data
+        bdata: bool &optional &log;
         isread: bool &log;
     };
 
@@ -249,6 +251,10 @@ function data2symbol (data: S7comm::InfoS7data) : DFA_SYMBOL_S7DATA {
 
     if(data?$ddata) {
         new_data$ddata = data$ddata;
+    }
+
+    if(data?$bdata) {
+        new_data$bdata = data$bdata;
     }
 
     return new_data;
@@ -465,6 +471,18 @@ event siemenss7_write_data_real(c: connection, area: count, db: count, s7type: c
     # Aangezien er heel veel states kunnen onstaan door decimale, worden ze nu omgezet naar ints.
     c$s7data$ddata = floor(c$s7data$ddata);
 
+    handlePacket(c);
+}
+
+event siemenss7_read_data_bit(c: connection, area: count, db: count, s7type: count, address: count, data: bool) {
+
+    # Siemens function read packets met bit data
+    handlePacket(c);
+}
+
+event siemenss7_write_data_bit(c: connection, area: count, db: count, s7type: count, address: count, data: bool) {
+
+    # Siemens function write packets met real data
     handlePacket(c);
 }
 
