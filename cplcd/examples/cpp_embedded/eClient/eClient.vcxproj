@@ -32,6 +32,7 @@
     <ClCompile Include="..\..\..\src\sys\snap_threads.cpp" />
     <ClCompile Include="client.cpp" />
     <ClCompile Include="CryptoProvider.cpp" />
+    <ClCompile Include="HTTP.cpp" />
     <ClCompile Include="PLC.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -50,6 +51,7 @@
     <ClInclude Include="..\..\..\src\sys\snap_threads.h" />
     <ClInclude Include="..\..\..\src\sys\win_threads.h" />
     <ClInclude Include="CryptoProvider.h" />
+    <ClInclude Include="HTTP.h" />
     <ClInclude Include="PLC.h" />
     <ClInclude Include="sha256.h" />
   </ItemGroup>

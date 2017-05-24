@@ -23,27 +23,33 @@ std::string PLC::getCode()
 	}
 
 	std::stringstream ss;
+
 	if (List->OBCount > 0)
 	{
+		//std::cout << "OBcount = " << List->OBCount << endl;
 		ss << this->processBlocks(Block_OB, List->OBCount);	
 	}
 
 	if (List->FBCount > 0)
 	{
+		//std::cout << "FBcount = " << List->FBCount << endl;
 		ss << this->processBlocks(Block_FB, List->FBCount);
 	}
 
 	if (List->FCCount > 0)
 	{
+		//std::cout << "FCcount = " << List->FCCount << endl;
 		ss << this->processBlocks(Block_FC, List->FCCount);
 	}
 
 	if (List->SFBCount > 0)
 	{
+		//std::cout << "SFBcount = " << List->SFBCount << endl;
 		ss << this->processBlocks(Block_SFC, List->SFBCount);
 	}
 	if (List->SFCCount > 0)
 	{
+		//std::cout << "SFCcount = " << List->SFCCount << endl;
 		ss << this->processBlocks(Block_SFC, List->SFCCount);
 	}
 
@@ -77,6 +83,7 @@ std::string PLC::processBlocks(byte Block_Type, int count)
 		int res = client->Upload(Block_Type, i, &Buffer, Size);
 		if (res == 0)
 		{
+			//std::cout << (char*)(Buffer) << endl;
 			ss << (char*)(Buffer);
 		}
 	}
