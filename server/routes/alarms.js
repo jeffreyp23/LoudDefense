@@ -60,7 +60,7 @@ router.get('/', function (req, res, next) {
 
             db.serialize(function () {
 
-                db.each("SELECT * FROM notice", function (err, row) {
+                db.each("SELECT * FROM notice ORDER BY ts DESC", function (err, row) {
 
                     if (err) {
                         console.log(err);
