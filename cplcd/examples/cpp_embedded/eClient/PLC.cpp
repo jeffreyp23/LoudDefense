@@ -16,8 +16,8 @@ std::string PLC::getCode()
 {
 	TS7BlocksList *List;
 	List = getBlockList();
-	
-
+	TS7BlocksOfType buffertje;
+	//char buffer[200];
 	if (List == nullptr){
 		return nullptr;
 	}
@@ -26,8 +26,21 @@ std::string PLC::getCode()
 
 	if (List->OBCount > 0)
 	{
-		//std::cout << "OBcount = " << List->OBCount << endl;
+		std::cout << "OBcount = " << List->OBCount << endl;
 		ss << this->processBlocks(Block_OB, List->OBCount);	
+
+		int res = client->ListBlocksOfType(Block_OB, &buffertje, List->FBCount);
+		if (res == 0)
+		{
+			std::cout << "blocks of type gekregen" << std::endl;
+			for (int i = 0; i < List->FBCount; i++)
+			{
+				printf("FB nummer: %d.\n", buffertje[i]);
+			}
+		}
+		else
+			std::cout << "Geen Blocks of type gekregen !!!!" << std::endl;
+		//st1d::cout << blocks << std::endl;
 	}
 
 	if (List->FBCount > 0)
@@ -86,6 +99,8 @@ std::string PLC::processBlocks(byte Block_Type, int count)
 			//std::cout << (char*)(Buffer) << endl;
 			ss << (char*)(Buffer);
 		}
+		//else
+			//std::cout << "ERROR" << std::endl;
 	}
 
 	return ss.str();

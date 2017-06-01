@@ -40,20 +40,68 @@
 
 int main(int argc, char* argv[])
 {
-	ofstream file;
-	file.open("hash.txt", ios::out | ios::app);
+	
+	int nieuw = 0, oud = 0;
+	//printf("1");
+	if (argc < 2)
+	{
+		printf("gebruik --nieuw/--oud\n");
+		exit(1);
+	}
 
-	std::cout << "Connecting to PLC...\n";
-	PLC plc("192.168.0.150");
+	if (strcmp(argv[1], "--nieuw") == 0)
+	{
+		nieuw = 1;
+		printf("eerste Scan...\n");
+	}
+	else if (strcmp(argv[1], "--oud") == 0)
+	{
+		oud = 1;
+		printf("test scan...\n");
+	}
 
-	std::cout << "Connected to PLC\nGetting code..\n";
+	if (nieuw)
+	{
+		ofstream file;
+		file.open("hash.txt", ios::out | ios::app);
 
-	std::string plc_code = plc.getCode();
-	std::cout << "PLC hash: " << CryptoProvider::sha256(plc_code) << std::endl;
-	file << CryptoProvider::sha256(plc_code) << endl;
+		std::cout << "Connecting to PLC...\n";
+		PLC plc("192.168.0.150");
+
+		std::cout << "Connected to PLC\nGetting code..\n";
+
+		std::string plc_code = plc.getCode();
+		//std::cout << "PLC hash: " << CryptoProvider::sha256(plc_code) << std::endl;
+		file << CryptoProvider::sha256(plc_code) << endl;
 
 
-	file.close();
+		file.close();
+	}
+	else if (oud)
+	{
+		ifstream infile;
+		std::string  data;
+		infile.open("hash.txt");
+		std::cout << "Connecting to PLC...\n";
+		PLC plc("192.168.0.150");
+
+		std::cout << "Connected to PLC\nGetting code..\n";
+
+		std::string plc_code = plc.getCode();
+		//std::cout << "PLC hash: " << CryptoProvider::sha256(plc_code) << std::endl;
+		infile >> data;
+		if (data.compare( CryptoProvider::sha256(plc_code)) == 0)
+		{
+			std::cout << "Er is een match" << endl;
+		}
+		else
+			std::cout << "Er is geen match" << endl;
+
+		std::cout << CryptoProvider::sha256(plc_code) << std::endl;
+
+		infile.close();
+	}
+	//sleep();
 	return 0;
 }
 
