@@ -34,6 +34,9 @@
             },
             getMode: function() {
                 return $http.get(url + '/mode')
+            },
+            getCPLCD: function() {
+                return $http.get(url + '/cplcd');
             }
         };
     }
