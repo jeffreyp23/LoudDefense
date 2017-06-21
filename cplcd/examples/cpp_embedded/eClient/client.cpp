@@ -42,66 +42,74 @@ int main(int argc, char* argv[])
 {
 	
 	int nieuw = 0, oud = 0;
-	//printf("1");
+
 	if (argc < 2)
 	{
-		printf("gebruik --nieuw/--oud\n");
+		printf("gebruik --init/--hash\n");
 		exit(1);
 	}
 
-	if (strcmp(argv[1], "--nieuw") == 0)
+	if (strcmp(argv[1], "--init") == 0)
 	{
 		nieuw = 1;
 		printf("eerste Scan...\n");
 	}
-	else if (strcmp(argv[1], "--oud") == 0)
+	else if (strcmp(argv[1], "--hash") == 0)
 	{
 		oud = 1;
 		printf("test scan...\n");
 	}
 
+
 	if (nieuw)
 	{
 		ofstream file;
-		file.open("hash.txt", ios::out | ios::app);
+		file.open("InitialHash.txt");
 
-		std::cout << "Connecting to PLC...\n";
-		PLC plc("192.168.0.150");
+		//std::cout << "Connecting to PLC...\n";
+		PLC plc("192.168.0.150"); // verbind met PLC
 
-		std::cout << "Connected to PLC\nGetting code..\n";
+		//std::cout << "Connected to PLC\nGetting code..\n";
 
-		std::string plc_code = plc.getCode();
+		std::string plc_code = plc.getCode(); // verkrijg de code
 		//std::cout << "PLC hash: " << CryptoProvider::sha256(plc_code) << std::endl;
-		file << CryptoProvider::sha256(plc_code) << endl;
+		file << CryptoProvider::sha256(plc_code) << endl; // stop hash in de file
 
 
 		file.close();
+		plc.Disconnect();
 	}
 	else if (oud)
 	{
-		ifstream infile;
-		std::string  data;
-		infile.open("hash.txt");
-		std::cout << "Connecting to PLC...\n";
-		PLC plc("192.168.0.150");
-
-		std::cout << "Connected to PLC\nGetting code..\n";
-
-		std::string plc_code = plc.getCode();
-		//std::cout << "PLC hash: " << CryptoProvider::sha256(plc_code) << std::endl;
-		infile >> data;
-		if (data.compare( CryptoProvider::sha256(plc_code)) == 0)
+		while (true)
 		{
-			std::cout << "Er is een match" << endl;
+			ifstream infile;
+			std::string  data;
+			infile.open("InitialHash.txt");
+			PLC plc("192.168.0.150"); // verbind met de PLC
+
+
+			std::string plc_code = plc.getCode(); // vergrijg de code
+			infile >> data; // lees hash uit file.
+			if (data.compare(CryptoProvider::sha256(plc_code)) == 0) // vergelijk de data
+			{
+				std::cout << "Er is een match" << endl;
+				system("python signal_bro.py 192.168.0.138 1"); // roep python script aan voor het versturen van een 1 naar de server
+			}
+			else {
+				std::cout << "Er is geen match" << endl;
+				system("python signal_bro.py 192.168.0.138 0"); //roep python script aan voor het versturen van een 0 naar de server
+			}
+
+			infile.close();
+			plc.Disconnect();
+
+			int seconds = 60; // 60 seconden voor 1 minuut
+			Sleep(seconds * 1000); // slaap voor 1 minuut. 
 		}
-		else
-			std::cout << "Er is geen match" << endl;
-
-		std::cout << CryptoProvider::sha256(plc_code) << std::endl;
-
-		infile.close();
+		
 	}
-	//sleep();
+	
 	return 0;
 }
 

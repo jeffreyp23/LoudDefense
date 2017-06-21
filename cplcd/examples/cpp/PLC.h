@@ -24,6 +24,7 @@ public:
 	PLC(std::string ipAddress);
 	std::string getCode();
 	void Disconnect();
+	//void Download();
 	~PLC();
 
 
